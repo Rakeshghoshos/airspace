@@ -1,6 +1,6 @@
 'use client';
 
-import { set, z } from 'zod';
+import { z } from 'zod';
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,6 +18,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAccount, signInUser } from '@/lib/actions/user.actions';
 import OtpModel from './OtpModel';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type formType = 'sign-in' | 'sign-up';
 
@@ -33,6 +43,8 @@ const AuthForm = ({ type }: { type: formType }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [accountId, setAccountId] = useState();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const formSchema = authFormSchema(type);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,7 +66,7 @@ const AuthForm = ({ type }: { type: formType }) => {
               email: values.email,
             })
           : await signInUser({ email: values.email });
-
+      if (user.accountId == null) setIsDialogOpen(true);
       setAccountId(user.accountId);
     } catch {
       setErrorMessage('failed to create account');
@@ -146,8 +158,28 @@ const AuthForm = ({ type }: { type: formType }) => {
         </form>
       </Form>
       {/* otp verification */}
-      {accountId && (
+      {accountId ? (
         <OtpModel email={form.getValues('email')} accountId={accountId} />
+      ) : (
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <button className="hidden" />
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Not Found</AlertDialogTitle>
+              <AlertDialogDescription>
+                No User Found Please Sign-up if you don't have an account or try
+                again later
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </>
   );
