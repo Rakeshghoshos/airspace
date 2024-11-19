@@ -252,7 +252,7 @@
   }
 
   .share-wrapper {
-    @apply !mt-2 space-y-2 !important;
+    @apply !mt-2 max-w-fit space-y-2 !important;
   }
   .share-input-field {
     @apply body-2 shad-no-focus h-[52px] w-full rounded-full border px-4 shadow-drop-1 !important;
